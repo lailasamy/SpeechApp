@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Language Pathologist App</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+        .container {
+            text-align: center;
+            background-color: #fffacd;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+            max-width: 90%;
+            margin: auto;
+        }
+        
+        .difficulty-buttons button, #controls button, #syllables-container button, #summary-button {
+            margin: 15px;
+            padding: 20px 35px;
+            border: none;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .difficulty-buttons button:hover, #controls button:hover, #syllables-container button:hover, #summary-button:hover {
+            background-color: #ff1493;
+        }
+        .word-display, #combined-word {
+            font-size: 36px;
+            margin: 30px 0;
+        }
+        
+        .syllable {
+            display: inline-block;
+            padding: 15px;
+            margin: 10px;
+            background-color: #ffb6c1;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 30px;
+        }
+        
+        .syllable.correct {
+            background-color: #76c7c0;
+        }
+        .syllable.selected {
+            background-color: #ff4500;
+            color: white;
+        }
+        #word-bank {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ff69b4;
+        }
+        #word-bank h3 {
+            margin-bottom: 15px;
+        }
+        .word-bank-item {
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            background-color: #ffdab9;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 26px;
+        }
+        
+        #hard-syllables {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px dashed #ff69b4;
+            border-radius: 10px;
+            background-color: #ffe4e1;
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 200px;
+        }
+        #hard-syllables h3 {
+            margin-bottom: 10px;
+        }
+        #success-bar-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 200px;
+            height: 30px;
+            background-color: #ddd;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        #success-bar {
+            height: 100%;
+            background-color: #76c7c0;
+            width: 0%;
+        }
+        /* Character selection styles */
+        #character-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .character-options {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        .character-option img {
+            width: 200px;
+            height: auto;
+        }
+        .character {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 200px;
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1500; /* Ensure character is on top */
+        }
+        .message {
+            background-color: white;
+            border-radius: 10px;
+            padding: 5px 10px;
+            margin-top: -20px;
+            display: none;
+            font-size: 16px;
+        }
+        .character-selection-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        #menu {
+            display: none;
+            position: absolute;
+            bottom: 180px;
+            right: 20px;
+            background-color: #fffacd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+        }
+        #client-name-display {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #summary-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fffacd;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+        }
+        #client-name-input {
+            padding: 15px;
+            border: 2px solid #ff69b4;
+            border-radius: 15px;
+            font-size: 18px;
+            margin-top: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        #client-name-input:focus {
+            border-color: #ff1493;
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+        }
+        
+        #submit-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border: none;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            outline: none; /* Remove the weird outline */
+        }
+        
+        #submit-button:hover {
+            background-color: #ff1493;
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+        }
+        
+        #menu {
+            display: none;
+            position: absolute;
+            bottom: 180px;
+            right: 20px;
+            background-color: #fffacd;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 2000;
+        }
+        #client-name-display {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        #summary-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fffacd;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            z-index: 2000;
+        }
+
+        #microphone-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border: none;
+            background-color: #ff69b4;
+            color: white;
+            border-radius: 15px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+        
+        #microphone-button:hover {
+            background-color: #ff1493;
+            box-shadow: 0 0 15px rgba(255, 20, 147, 0.5);
+        }
+        
+        #recordings {
+            margin-top: 20px;
+        }
+        
+        #recording-list li {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div id="character-selection">
+        <div class="character-selection-title">Pick Your Character and Enter Client Name</div>
+        <div class="character-options">
+            <div class="character-option" onclick="selectCharacter('1')">
+                <img src="static/1.png" alt="Monster 1">
+            </div>
+            <div class="character-option" onclick="selectCharacter('2')">
+                <img src="static/2.png" alt="Monster 2">
+            </div>
+            <div class="character-option" onclick="selectCharacter('3')">
+                <img src="static/3.png" alt="Monster 3">
+            </div>
+            <div class="character-option" onclick="selectCharacter('4')">
+                <img src="static/4.png" alt="Monster 4">
+            </div>
+        </div>
+        <input type="text" id="client-name-input" placeholder="Client's Name">
+<button id="submit-button" onclick="submitClientName()">Submit</button>
+
+    </div>
+    
+
+    <div id="menu" style="display: none;">
+        <div id="client-name-display"></div>
+        <button id="summary-button" onclick="showSummary()">Show Summary</button>
+        <div id="recordings">
+            <h3>Recordings</h3>
+            <ul id="recording-list"></ul>
+        </div>
+    </div>
+    <div id="character" class="character" style="display: none;" onclick="toggleMenu()">
+    </div>
+    
+    <div id="hard-syllables" style="display: block;">
+        <h3>Hard Syllables:</h3>
+        <div id="hard-syllables-list"></div>
+    </div>
+    <div class="container">
+        <h1>Speech Language Pathologist App</h1>
+        <div class="difficulty-buttons">
+            <button onclick="getWord('easy')" id="easy-button" disabled>Easy</button>
+            <button onclick="getWord('medium')" id="medium-button" disabled>Medium</button>
+            <button onclick="getWord('hard')" id="hard-button" disabled>Hard</button>
+        </div>
+        <div id="word-display" class="word-display"></div>
+        <div id="controls" style="display: none;">
+            <p>Were you able to pronounce it correctly?</p>
+            <button onclick="markPronunciation('yes')">Yes</button>
+            <button onclick="markPronunciation('no')">No</button>
+        </div>
+        <div id="syllables-container" style="display: none;">
+            <p>Click on the syllables that were hard to pronounce:</p>
+            <div id="syllables"></div>
+            <button onclick="addToWordBank()">Add to Word Bank</button>
+        </div>
+        <button id="microphone-button" onclick="toggleRecording()">🎤 Start Recording</button>
+        <div id="combined-word" class="word-display" style="display: none;"></div>
+        <div id="word-bank" style="display: block;">
+            <h3>Word Bank</h3>
+            <div id="word-bank-list"></div>
+        </div>
+    </div>
+    <div id="success-bar-container">
+        <div id="success-bar"></div>
+    </div>
+    <div id="character" class="character" style="display: none;" onclick="toggleMenu()">
+        <div class="message" id="character-message">Good Job!</div>
+    </div>
+    
+    <div id="summary-popup">
+        <h2>Session Summary</h2>
+        <div id="summary-content"></div>
+        <button onclick="closeSummary()">Close</button>
+    </div>
+    
+    <script>
+        let currentWord = '';
+        let currentDifficulty = '';
+        let successes = 0;
+        let attempts = 0;
+        let combinedWordArray = [];
+        let syllablesArray = [];
+        let selectedCharacter = '';
+        let clientName = '';
+        let correctWords = [];
+        let incorrectWords = [];
+        let hardSyllables = [];
+        let wordBankWords = [];
+        let encouragingMessages = ["Good job!", "You can do this!", "You're so smart!", "Keep it up!", "Great effort!", "You're amazing!", "Fantastic work!", "Keep going!", "Awesome job!", "Well done!", "You’re doing great!", "Believe in yourself!", "Stay positive!", "Excellent progress!", "You rock!"];
+
+        function getWord(difficulty) {
+            currentDifficulty = difficulty;
+            fetch('/get_word', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ difficulty: difficulty }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentWord = data.word;
+                syllablesArray = data.word.split(/(?=[aeiou])/); // Basic syllable split
+                displayWord(data.word);
+                document.getElementById('controls').style.display = 'none';
+                document.getElementById('syllables-container').style.display = 'none';
+                document.getElementById('combined-word').style.display = 'none';
+                document.getElementById('hard-syllables').style.display = 'block';
+                combinedWordArray = [];
+            });
+        }
+
+        function displayWord(word) {
+            const wordDisplay = document.getElementById('word-display');
+            wordDisplay.innerHTML = '';
+            combinedWordArray = [];
+            syllablesArray = word.split(/(?=[aeiou])/); // Basic syllable split
+
+            syllablesArray.forEach((syllable, index) => {
+                const syllableElement = document.createElement('span');
+                syllableElement.className = 'syllable';
+                syllableElement.textContent = syllable;
+                syllableElement.onclick = () => combineSyllable(syllableElement, index);
+                wordDisplay.appendChild(syllableElement);
+            });
+        }
+
+        function combineSyllable(syllableElement, index) {
+            if (index === combinedWordArray.length) {
+                syllableElement.classList.add('correct');
+                combinedWordArray.push(syllableElement.textContent);
+                const combinedWord = document.getElementById('combined-word');
+                combinedWord.style.display = 'block';
+                combinedWord.textContent = combinedWordArray.join('');
+                if (combinedWordArray.join('') === currentWord) {
+                    document.getElementById('controls').style.display = 'block';
+                }
+            }
+        }
+
+        function markPronunciation(answer) {
+            attempts++;
+            if (answer === 'yes') {
+                successes++;
+                correctWords.push(currentWord);
+                showCharacterMessage("Good Job!");
+                fetch('/remove_from_word_bank', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ word: currentWord }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Removed from word bank:', currentWord);
+                    updateWordBank();
+                });
+                document.getElementById('combined-word').textContent = '';
+                getWord(currentDifficulty);
+            } else {
+                incorrectWords.push(currentWord);
+                displaySyllables(currentWord);
+                document.getElementById('controls').style.display = 'none';
+                document.getElementById('syllables-container').style.display = 'block';
+                document.getElementById('hard-syllables').style.display = 'block';
+            }
+            updateSuccessRate();
+        }
+
+        function displaySyllables(word) {
+            const syllablesContainer = document.getElementById('syllables');
+            const hardSyllablesList = document.getElementById('hard-syllables-list');
+            syllablesContainer.innerHTML = '';
+            hardSyllablesList.innerHTML = '';
+
+            syllablesArray.forEach((syllable, index) => {
+                const syllableElement = document.createElement('span');
+                syllableElement.className = 'syllable';
+                syllableElement.textContent = syllable;
+                syllableElement.onclick = () => {
+                    syllableElement.classList.toggle('selected');
+                    if (syllableElement.classList.contains('selected')) {
+                        const hardSyllableElement = document.createElement('span');
+                        hardSyllableElement.className = 'syllable';
+                        hardSyllableElement.textContent = syllable;
+                        hardSyllableElement.onclick = () => fetchSimilarWords(syllable);
+                        hardSyllablesList.appendChild(hardSyllableElement);
+                        hardSyllables.push(syllable);
+                    } else {
+                        const hardSyllableElements = hardSyllablesList.getElementsByClassName('syllable');
+                        for (let i = 0; i < hardSyllableElements.length; i++) {
+                            if (hardSyllableElements[i].textContent === syllable) {
+                                hardSyllablesList.removeChild(hardSyllableElements[i]);
+                                hardSyllables = hardSyllables.filter(s => s !== syllable);
+                                break;
+                            }
+                        }
+                    }
+                };
+                syllablesContainer.appendChild(syllableElement);
+            });
+        }
+
+        function fetchSimilarWords(syllable) {
+            fetch('/get_similar_words', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ syllable: syllable }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentWord = data.word;
+                syllablesArray = data.word.split(/(?=[aeiou])/);
+                displayWord(data.word);
+                combinedWordArray = [];
+            });
+        }
+
+        function addToWordBank() {
+            fetch('/add_to_word_bank', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ word: currentWord }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Added to word bank:', currentWord);
+                document.getElementById('syllables-container').style.display = 'none';
+                getSimilarWord(currentWord, currentDifficulty);
+                updateWordBank();
+            });
+        }
+
+        function getSimilarWord(word, difficulty) {
+            document.getElementById('combined-word').textContent = '';
+            getWord(difficulty);
+        }
+
+        function updateWordBank() {
+            fetch('/word_bank')
+            .then(response => response.json())
+            .then(data => {
+                const wordBankList = document.getElementById('word-bank-list');
+                wordBankList.innerHTML = '';
+                data.word_bank.forEach(word => {
+                    const wordBankItem = document.createElement('span');
+                    wordBankItem.className = 'word-bank-item';
+                    wordBankItem.textContent = word;
+                    wordBankItem.onclick = () => retryWord(word);
+                    wordBankList.appendChild(wordBankItem);
+                    wordBankWords.push(word);
+                });
+                document.getElementById('word-bank').style.display = 'block';
+            });
+        }
+
+        function retryWord(word) {
+            currentWord = word;
+            syllablesArray = word.split(/(?=[aeiou])/);
+            displayWord(word);
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('syllables-container').style.display = 'none';
+            document.getElementById('combined-word').style.display = 'none';
+            combinedWordArray = [];
+        }
+
+        function updateSuccessRate() {
+            const successRate = Math.round((successes / attempts) * 100);
+            const successBar = document.getElementById('success-bar');
+            successBar.style.width = `${successRate}%`;
+        }
+
+        function showCharacterMessage(message) {
+            const characterMessage = document.getElementById('character-message');
+            characterMessage.textContent = message;
+            characterMessage.style.display = 'block';
+            setTimeout(() => {
+                characterMessage.style.display = 'none';
+            }, 2000);
+        }
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            const characterElement = document.getElementById('character');
+            characterElement.style.backgroundImage = `url(static/${character}.png)`;
+            characterElement.style.display = 'flex';
+            showEncouragingMessages();
+        }
+
+        function showEncouragingMessages() {
+            setInterval(() => {
+                const message = encouragingMessages[Math.floor(Math.random() * encouragingMessages.length)];
+                showCharacterMessage(message);
+            }, 6000);
+        }
+
+        function submitClientName() {
+            clientName = document.getElementById('client-name-input').value;
+            if (clientName.trim() === '' || selectedCharacter === '') {
+                alert('Please enter a client name and select a character.');
+                return;
+            }
+            document.getElementById('character-selection').style.display = 'none';
+            document.getElementById('client-name-display').textContent = 'Client: ' + clientName;
+            document.getElementById('easy-button').disabled = false;
+            document.getElementById('medium-button').disabled = false;
+            document.getElementById('hard-button').disabled = false;
+        }
+        
+       
+        
+        
+
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function showSummary() {
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = `
+                <p><strong>Client:</strong> ${clientName}</p>
+                <p><strong>Words Correct:</strong> ${correctWords.join(', ')}</p>
+                <p><strong>Words Incorrect:</strong> ${incorrectWords.join(', ')}</p>
+                <p><strong>Hard Syllables:</strong> ${hardSyllables.join(', ')}</p>
+                <p><strong>Session Success Rate:</strong> ${Math.round((successes / attempts) * 100)}%</p>
+                <p><strong>Word Bank:</strong> ${wordBankWords.join(', ')}</p>
+            `;
+            document.getElementById('summary-popup').style.display = 'block';
+        }
+
+        function closeSummary() {
+            document.getElementById('summary-popup').style.display = 'none';
+        }
+
+        window.onload = updateWordBank;
+
+
+        let isRecording = false;
+        let mediaRecorder;
+        let recordedChunks = [];
+        let recordings = [];
+        
+        function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+        
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        recordedChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = saveRecording;
+                    mediaRecorder.start();
+                    document.getElementById('microphone-button').textContent = "🎤 Stop Recording";
+                    isRecording = true;
+                })
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                });
+        }
+        
+        function stopRecording() {
+            mediaRecorder.stop();
+            document.getElementById('microphone-button').textContent = "🎤 Start Recording";
+            isRecording = false;
+        }
+        
+        function saveRecording() {
+            const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+            recordedChunks = [];
+            const url = URL.createObjectURL(blob);
+            recordings.push({ url: url, word: currentWord });
+            updateRecordingList();
+        }
+        
+        function updateRecordingList() {
+            const recordingList = document.getElementById('recording-list');
+            recordingList.innerHTML = '';
+            recordings.forEach((recording, index) => {
+                const listItem = document.createElement('li');
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = recording.url;
+                const wordLabel = document.createElement('span');
+                wordLabel.textContent = `Word: ${recording.word}`;
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteRecording(index);
+                listItem.appendChild(audio);
+                listItem.appendChild(wordLabel);
+                listItem.appendChild(deleteButton);
+                recordingList.appendChild(listItem);
+            });
+        }
+        
+        function deleteRecording(index) {
+            recordings.splice(index, 1);
+            updateRecordingList();
+        }
+        
+        function showRecordings() {
+            document.getElementById('recordings-popup').style.display = 'block';
+        }
+        
+        function closeRecordings() {
+            document.getElementById('recordings-popup').style.display = 'none';
+        }
+        
+        document.getElementById('character').onclick = toggleMenu;
+        
+        function submitClientName() {
+            clientName = document.getElementById('client-name-input').value;
+            if (clientName.trim() === '' || selectedCharacter === '') {
+                alert('Please enter a client name and select a character.');
+                return;
+            }
+            document.getElementById('character-selection').style.display = 'none';
+            document.getElementById('client-name-display').textContent = 'Client: ' + clientName;
+            document.getElementById('easy-button').disabled = false;
+            document.getElementById('medium-button').disabled = false;
+            document.getElementById('hard-button').disabled = false;
+        }
+        
+        function toggleMenu() {
+            const menu = document.getElementById('menu');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        function showSummary() {
+            const summaryContent = document.getElementById('summary-content');
+            summaryContent.innerHTML = `
+                <p><strong>Client:</strong> ${clientName}</p>
+                <p><strong>Words Correct:</strong> ${correctWords.join(', ')}</p>
+                <p><strong>Words Incorrect:</strong> ${incorrectWords.join(', ')}</p>
+                <p><strong>Hard Syllables:</strong> ${hardSyllables.join(', ')}</p>
+                <p><strong>Session Success Rate:</strong> ${Math.round((successes / attempts) * 100)}%</p>
+                <p><strong>Word Bank:</strong> ${wordBankWords.join(', ')}</p>
+            `;
+            document.getElementById('summary-popup').style.display = 'block';
+        }
+        
+        function closeSummary() {
+            document.getElementById('summary-popup').style.display = 'none';
+        }
+        
+        window.onload = updateWordBank;
+        
+    </script>
+</body>
+</html>
